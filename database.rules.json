@@ -1,16 +1,16 @@
 {
   "rules": {
     "proofs": {
-      ".read": "auth != null && auth.uid === 'PASTE_YOUR_HOST_ID'",
+      ".read": "auth != null && auth.uid === 'XjJvrUZwLmTXGMOUfOZJSPo5WJr1'",
       ".indexOn": ["status", "ts"],
       "$uid": {
-        ".read": "auth != null && (auth.uid === $uid || auth.uid === 'PASTE_YOUR_HOST_ID')",
-        ".write": "auth != null && (auth.uid === 'PASTE_YOUR_HOST_ID' || (auth.uid === $uid && data.child('status').val() !== 'rejected'))",
+        ".read": "auth != null && (auth.uid === $uid || auth.uid === 'XjJvrUZwLmTXGMOUfOZJSPo5WJr1')",
+        ".write": "auth != null && (auth.uid === 'XjJvrUZwLmTXGMOUfOZJSPo5WJr1' || (auth.uid === $uid && data.child('status').val() !== 'rejected'))",
         ".validate": "newData.hasChildren(['img', 'ts', 'status'])",
         "img": { ".validate": "newData.isString() && newData.val().beginsWith('data:image/') && newData.val().length < 400000" },
         "ts": { ".validate": "newData.isNumber()" },
         "name": { ".validate": "newData.isString() && newData.val().length <= 24" },
-        "status": { ".validate": "newData.val() === 'pending' || (auth.uid === 'PASTE_YOUR_HOST_ID' && (newData.val() === 'approved' || newData.val() === 'rejected'))" },
+        "status": { ".validate": "newData.val() === 'pending' || (auth.uid === 'XjJvrUZwLmTXGMOUfOZJSPo5WJr1' && (newData.val() === 'approved' || newData.val() === 'rejected'))" },
         "$other": { ".validate": false }
       }
     },
