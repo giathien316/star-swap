@@ -1,5 +1,19 @@
 {
   "rules": {
+    "proofs": {
+      ".read": "auth != null && auth.uid === 'PASTE_YOUR_HOST_ID'",
+      ".indexOn": ["status", "ts"],
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.uid === 'PASTE_YOUR_HOST_ID')",
+        ".write": "auth != null && (auth.uid === 'PASTE_YOUR_HOST_ID' || (auth.uid === $uid && data.child('status').val() !== 'rejected'))",
+        ".validate": "newData.hasChildren(['img', 'ts', 'status'])",
+        "img": { ".validate": "newData.isString() && newData.val().beginsWith('data:image/') && newData.val().length < 400000" },
+        "ts": { ".validate": "newData.isNumber()" },
+        "name": { ".validate": "newData.isString() && newData.val().length <= 24" },
+        "status": { ".validate": "newData.val() === 'pending' || (auth.uid === 'PASTE_YOUR_HOST_ID' && (newData.val() === 'approved' || newData.val() === 'rejected'))" },
+        "$other": { ".validate": false }
+      }
+    },
     "presence": {
       ".read": "auth != null",
       "$uid": {
@@ -10,7 +24,7 @@
     "pairing": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".validate": "!newData.exists() || (newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('link').isString() && newData.child('link').val().length <= 300)"
+      ".validate": "!newData.exists() || (newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('link').isString() && newData.child('link').val().length <= 300 && root.child('proofs/' + auth.uid + '/img').exists() && root.child('proofs/' + auth.uid + '/status').val() !== 'rejected')"
     },
     "inbox": {
       "$uid": {
@@ -22,7 +36,31 @@
     "pairs": {
       "$pid": {
         ".read": "auth != null && (data.child('a').val() === auth.uid || data.child('b').val() === auth.uid)",
-        ".write": "auth != null && ((!data.exists() && newData.child('b').val() === auth.uid) || data.child('a').val() === auth.uid || data.child('b').val() === auth.uid)"
+        ".write": "auth != null && !data.exists() && newData.child('b').val() === auth.uid && root.child('proofs/' + auth.uid + '/img').exists() && root.child('proofs/' + auth.uid + '/status').val() !== 'rejected'",
+        "aProof": {
+          ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+          ".validate": "data.parent().exists() && newData.isString() && newData.val().beginsWith('data:image/') && newData.val().length < 400000"
+        },
+        "bProof": {
+          ".write": "auth != null && data.parent().child('b').val() === auth.uid",
+          ".validate": "data.parent().exists() && newData.isString() && newData.val().beginsWith('data:image/') && newData.val().length < 400000"
+        },
+        "aCheck": {
+          ".write": "auth != null && (data.parent().child('b').val() === auth.uid || (data.parent().child('a').val() === auth.uid && !newData.exists()))",
+          ".validate": "data.parent().exists() && (newData.val() === 'ok' || newData.val() === 'bad')"
+        },
+        "bCheck": {
+          ".write": "auth != null && (data.parent().child('a').val() === auth.uid || (data.parent().child('b').val() === auth.uid && !newData.exists()))",
+          ".validate": "data.parent().exists() && (newData.val() === 'ok' || newData.val() === 'bad')"
+        },
+        "aLeft": {
+          ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+          ".validate": "newData.isBoolean()"
+        },
+        "bLeft": {
+          ".write": "auth != null && data.parent().child('b').val() === auth.uid",
+          ".validate": "newData.isBoolean()"
+        }
       }
     }
   }

@@ -1,10 +1,14 @@
 // Matching backend. Firebase Realtime Database when configured, otherwise a demo.
 //
 // Firebase layout
+//   /proofs/{uid}    : { img, ts, status, name }  gate screenshot. status: pending | approved | rejected (host sets)
 //   /presence/{uid}  : timestamp while someone is waiting (no names, only used for the count)
 //   /pairing         : { uid, name, link, ts }  the one person currently waiting
 //   /inbox/{uid}     : pairId, written by whoever claims you
-//   /pairs/{pairId}  : { a, aName, aLink, b, bName, bLink, ts, aDone, bDone }
+//   /pairs/{pairId}  : { a, aName, aLink, b, bName, bLink, ts,
+//                        aProof, bProof,   screenshot each side uploads after using the other's link
+//                        aCheck, bCheck,   "ok" | "bad": the OTHER side's verdict on that proof
+//                        aLeft, bLeft }
 (function () {
   const STALE_MS = 90 * 1000;      // a waiting slot older than this is ignored
   const HEARTBEAT_MS = 30 * 1000;
@@ -17,6 +21,7 @@
       document.head.appendChild(s);
     });
   }
+  const isImg = v => typeof v === "string" && v.indexOf("data:image/") === 0;
 
   // ---------------------------------------------------------------- Firebase
   function FirebaseBackend(cfg) {
@@ -37,6 +42,21 @@
       return uid;
     };
 
+    // ----- gate proof
+    api.sendGateProof = async function (img, name) {
+      const rec = { img, ts: firebase.database.ServerValue.TIMESTAMP, status: "pending" };
+      if (name) rec.name = name;
+      await db.ref("proofs/" + uid).set(rec);
+    };
+    api.setProofName = async function (name) {
+      await db.ref("proofs/" + uid + "/name").set(name);
+    };
+    // "none" | "pending" | "approved" | "rejected"
+    api.gateStatus = async function () {
+      const s = await db.ref("proofs/" + uid + "/status").once("value");
+      return s.val() || "none";
+    };
+
     api.watchCount = function (cb) {
       db.ref("presence").on("value", snap => {
         const now = Date.now(); let n = 0;
@@ -45,7 +65,7 @@
       });
     };
 
-    // Look for a partner. onMatch(pair) fires once paired.
+    // Look for a partner. onMatch(pair) fires once paired and on every change.
     api.connect = async function (me, onMatch) {
       const pres = db.ref("presence/" + uid);
       await pres.set(Date.now());
@@ -68,7 +88,7 @@
         await ref.set({
           a: claimed.uid, aName: claimed.name, aLink: claimed.link,
           b: uid, bName: me.name, bLink: me.link,
-          ts: firebase.database.ServerValue.TIMESTAMP, aDone: false, bDone: false
+          ts: firebase.database.ServerValue.TIMESTAMP
         });
         await db.ref("inbox/" + claimed.uid).set(ref.key);
         await pres.remove();
@@ -96,21 +116,23 @@
 
     function watchPair(pid, onMatch) {
       if (pairRef) pairRef.off();
+      api._pair = { pid, side: null };
       pairRef = db.ref("pairs/" + pid);
       pairRef.on("value", snap => {
         const p = snap.val();
         if (!p) return;
-        const iAmA = p.a === uid;
+        const me = p.a === uid ? "a" : "b", them = me === "a" ? "b" : "a";
+        api._pair.side = me;
         onMatch({
           id: pid,
-          partner: { name: iAmA ? p.bName : p.aName, link: iAmA ? p.bLink : p.aLink },
-          meDone: !!(iAmA ? p.aDone : p.bDone),
-          themDone: !!(iAmA ? p.bDone : p.aDone),
-          partnerLeft: !!(iAmA ? p.bLeft : p.aLeft)
+          partner: { name: p[them + "Name"], link: p[them + "Link"] },
+          myProof: isImg(p[me + "Proof"]),
+          myCheck: p[me + "Check"] || null,         // partner's verdict on my screenshot
+          theirProof: isImg(p[them + "Proof"]) ? p[them + "Proof"] : null,
+          theirCheck: p[them + "Check"] || null,    // my verdict on theirs
+          partnerLeft: !!p[them + "Left"]
         });
       });
-      api._pair = { pid, side: null };
-      pairRef.once("value").then(s => { const p = s.val(); if (p) api._pair.side = p.a === uid ? "a" : "b"; });
     }
 
     function stopWaiting() {
@@ -124,9 +146,17 @@
       await db.ref("presence/" + uid).remove();
     };
 
-    api.markDone = async function () {
+    // Upload my screenshot (clears any earlier verdict so the partner checks again).
+    api.sendSwapProof = async function (img) {
+      const p = api._pair; if (!p || !p.side) throw new Error("Not in a swap");
+      const upd = {}; upd[p.side + "Proof"] = img; upd[p.side + "Check"] = null;
+      await db.ref("pairs/" + p.pid).update(upd);
+    };
+    // My verdict on the partner's screenshot: "ok" | "bad"
+    api.checkPartner = async function (verdict) {
       const p = api._pair; if (!p || !p.side) return;
-      await db.ref("pairs/" + p.pid + "/" + p.side + "Done").set(true);
+      const them = p.side === "a" ? "b" : "a";
+      await db.ref("pairs/" + p.pid + "/" + them + "Check").set(verdict);
     };
 
     api.leave = async function () {
@@ -144,22 +174,48 @@
     const api = { mode: "demo" };
     let timers = [], state = null, onMatchCb = null;
     const clear = () => { timers.forEach(clearTimeout); timers = []; };
+    const emit = () => state && onMatchCb && onMatchCb(Object.assign({}, state));
+    const later = (ms, fn) => timers.push(setTimeout(fn, ms));
+    let gate = "none";
+    try { gate = localStorage.getItem("starswap.demoGate") || "none"; } catch (e) {}
+
+    // A stand-in "screenshot" so the partner-proof panel has something to show.
+    function fakeShot() {
+      const c = document.createElement("canvas"); c.width = 360; c.height = 640;
+      const x = c.getContext("2d");
+      x.fillStyle = "#16161d"; x.fillRect(0, 0, 360, 640);
+      x.fillStyle = "#ffc94a"; x.font = "bold 22px sans-serif"; x.textAlign = "center";
+      x.fillText("Example screenshot", 180, 290);
+      x.fillStyle = "#9aa3c6"; x.font = "16px sans-serif";
+      x.fillText("demo mode: a real partner", 180, 324);
+      x.fillText("would upload theirs here", 180, 346);
+      return c.toDataURL("image/jpeg", .8);
+    }
 
     api.init = async () => "demo-user";
+    api.sendGateProof = async () => { gate = "pending"; try { localStorage.setItem("starswap.demoGate", gate); } catch (e) {} };
+    api.setProofName = async () => {};
+    api.gateStatus = async () => gate;
     api.watchCount = cb => {
       const tick = () => cb(3 + Math.floor(Math.random() * 6));
       tick(); setInterval(tick, 7000);
     };
     api.connect = async (me, onMatch) => {
       onMatchCb = onMatch;
-      timers.push(setTimeout(() => {
-        state = { id: "demo", partner: { name: "starchaser.example", link: "https://example.com/demo-invite" }, meDone: false, themDone: false, demo: true };
-        onMatch(Object.assign({}, state));
-        timers.push(setTimeout(() => { state.themDone = true; onMatchCb(Object.assign({}, state)); }, 6000));
-      }, 1800));
+      later(1800, () => {
+        state = { id: "demo", partner: { name: "starchaser.example", link: "https://example.com/demo-invite" },
+                  myProof: false, myCheck: null, theirProof: null, theirCheck: null, demo: true };
+        emit();
+        later(5000, () => { state.theirProof = fakeShot(); emit(); });
+      });
     };
     api.cancel = async () => clear();
-    api.markDone = async () => { if (state) { state.meDone = true; onMatchCb(Object.assign({}, state)); } };
+    api.sendSwapProof = async () => {
+      if (!state) return;
+      state.myProof = true; state.myCheck = null; emit();
+      later(3000, () => { if (state) { state.myCheck = "ok"; emit(); } });
+    };
+    api.checkPartner = async v => { if (state) { state.theirCheck = v; emit(); } };
     api.leave = async () => { clear(); state = null; };
     return api;
   }

@@ -51,11 +51,15 @@
             <p class="hint">In TikTok Pro, go to Stars → Enter invite code, paste it and tap Confirm. Do it within 24 hours of signing up.</p>
           </div>
 
-          <label class="check">
-            <input type="checkbox" id="gate-check">
-            <span>I scanned the QR or redeemed the code</span>
-          </label>
-          <button class="btn primary" id="gate-go" type="button" disabled>Unlock <span id="gate-timer"></span></button>
+          <div class="proof card">
+            <span class="label">Then · Show proof</span>
+            <p class="hint">After you join, take a screenshot in TikTok Pro that shows you used this invite or code. The host checks every screenshot against their invite list. Fake or unrelated pictures get blocked from swapping.</p>
+            <button class="btn line" id="gate-pick" type="button">Choose screenshot</button>
+            <input type="file" id="gate-file" accept="image/*" hidden>
+            <img id="gate-preview" class="proof-img" alt="Your screenshot" hidden>
+          </div>
+          <p class="error" id="gate-error" hidden></p>
+          <button class="btn primary" id="gate-go" type="button" disabled>Send proof and unlock</button>
         </div>
       </div>
     </section>
@@ -93,6 +97,7 @@
           <button class="btn ghost sm" id="edit-card" type="button">Edit card</button>
         </div>
         <p class="hint center" id="swap-tally"></p>
+        <p class="error center" id="lobby-error" hidden></p>
       </div>
     </section>
 
@@ -119,20 +124,34 @@
         <div class="match-side">
           <ol class="todo">
             <li>Open their invite and join with it (or enter their code in Stars).</li>
-            <li>They do the same with yours.</li>
-            <li>Both press <b>Done</b>.</li>
+            <li>Screenshot TikTok Pro showing you used it, and upload it here.</li>
+            <li>They check your screenshot, you check theirs. It's done when both are approved.</li>
           </ol>
           <div class="row">
             <a class="btn line" id="open-partner" href="#" target="_blank" rel="noopener">Open their invite</a>
             <button class="btn ghost" id="copy-partner" type="button">Copy link</button>
           </div>
           <div class="status">
-            <span class="chip" id="chip-me">You · pending</span>
-            <span class="chip" id="chip-them">Them · pending</span>
+            <span class="chip" id="chip-me">Your proof · not sent</span>
+            <span class="chip" id="chip-them">Their proof · not sent</span>
           </div>
-          <button class="btn primary" id="mark-done" type="button">Done, I used their link</button>
+          <button class="btn primary" id="mark-done" type="button">Upload proof I used their link</button>
+          <input type="file" id="done-file" accept="image/*" hidden>
+          <p class="error" id="me-proof-note" hidden></p>
+
+          <div class="proof card" id="their-proof" hidden>
+            <span class="label" id="their-proof-title">Their proof</span>
+            <img id="their-proof-img" class="proof-img" alt="Your partner's screenshot">
+            <p class="hint">Does this show they joined with <b>your</b> invite? You can also check your invite list in TikTok Pro.</p>
+            <div class="row" id="verdict-btns">
+              <button class="btn primary sm" id="proof-ok" type="button">Looks right</button>
+              <button class="btn ghost sm" id="proof-bad" type="button">Doesn't show my invite</button>
+            </div>
+            <p class="hint" id="verdict-note" hidden></p>
+          </div>
+
           <div class="complete" id="complete" hidden>
-            <p><b>Swap complete.</b> You both used each other's links.</p>
+            <p><b>Swap complete.</b> You both approved each other's proof.</p>
             <button class="btn primary" id="again" type="button">Connect with someone else</button>
           </div>
           <button class="btn ghost sm" id="leave-match" type="button">Leave this swap</button>
@@ -142,7 +161,7 @@
   </main>
 
   <footer class="foot">
-    <span>Not affiliated with TikTok. Uses honor system: the site can't check who actually joined.</span>
+    <span>Not affiliated with TikTok. Proof screenshots are checked by people (the host and your partner), not by TikTok.</span>
     <span class="ver" id="ver"></span>
   </footer>
 </div>

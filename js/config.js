@@ -11,9 +11,6 @@ window.STARSWAP_CONFIG = {
   // Put the image in /assets and write its path here, e.g. "assets/my-qr.png".
   qrImage: "",
 
-  // Seconds the Unlock button waits after the page opens (gives people time to scan).
-  unlockDelaySeconds: 12,
-
   // 2) Firebase (free) so real people can be matched with each other.
   //    Leave as null and the site runs in DEMO MODE with example partners.
   //    See README.md -> "Turn on real matching".

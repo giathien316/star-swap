@@ -85,8 +85,12 @@ h2 { font-size: 22px; }
 .code-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 code { font-family: var(--mono); font-size: 20px; letter-spacing: .12em; color: var(--gold); background: var(--panel); border: 1px solid var(--line); padding: 6px 12px; border-radius: 10px; }
 
-.check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-weight: 500; }
-.check input { width: 20px; height: 20px; accent-color: var(--gold); margin-top: 2px; flex: none; }
+/* Proof screenshots */
+.proof { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.proof-img {
+  display: block; width: 100%; max-width: 240px; max-height: 420px; object-fit: contain;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--night);
+}
 
 /* Buttons */
 .btn {
@@ -154,8 +158,21 @@ input[type="url"], .at input {
 .status { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .chip.ok { color: var(--night); background: var(--mint); border-color: var(--mint); }
+.chip.bad { color: #ff8a8a; border-color: #ff8a8a; }
+#mark-done { align-self: stretch; }
 .complete { border: 1px solid var(--mint); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: rgba(111, 224, 192, .07); }
 .complete p { margin: 0; }
+
+/* Host review page */
+.setup { padding: 18px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-width: 620px; }
+.setup p { margin: 0; }
+.setup code { font-size: 14px; letter-spacing: .02em; word-break: break-all; }
+.filters { align-items: center; margin-bottom: 16px; }
+.review-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.review-item { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.review-item .proof-img { max-width: none; max-height: 340px; cursor: zoom-in; }
+.review-item .proof-img.big { max-height: none; cursor: zoom-out; }
+.review-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; overflow-wrap: anywhere; }
 
 /* Footer, toast */
 .foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
