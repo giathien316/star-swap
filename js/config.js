@@ -11,6 +11,11 @@ window.STARSWAP_CONFIG = {
   // Put the image in /assets and write its path here, e.g. "assets/my-qr.png".
   qrImage: "",
 
+  // Phone alert when someone sends a proof screenshot. Install the free "ntfy" app
+  // and subscribe to this topic name. Change the name if strangers ever start using it.
+  notifyTopic: "starswap-604994a8e97a",
+  reviewUrl: "https://giathien316.github.io/star-swap/review.html",
+
   // 2) Firebase (free) so real people can be matched with each other.
   //    Leave as null and the site runs in DEMO MODE with example partners.
   //    See README.md -> "Turn on real matching".

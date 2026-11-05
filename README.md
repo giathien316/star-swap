@@ -42,6 +42,8 @@ Without this, the site runs in **demo mode**: it works, but everyone gets an exa
 
 ### Checking proof
 
+**Get a phone alert for each new screenshot:** install the free **ntfy** app (iPhone or Android), tap **+**, and subscribe to the topic in `notifyTopic` in `js/config.js`. Tapping an alert opens `review.html`. The topic name is visible in the site's code, so if strangers ever spam it, change it to another random name and subscribe to the new one.
+
 - **Gate screenshots:** open `review.html`. For each one, look for that username in your TikTok Pro invite list. **Approve** real ones. **Reject** fakes: that device can no longer connect or send a new screenshot.
 - **Swap screenshots** go to the partner, not to you. Each partner approves or rejects the other's screenshot, and can check their own invite list too.
 

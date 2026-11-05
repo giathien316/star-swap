@@ -34,6 +34,7 @@
     snap.forEach(c => { rows.push(Object.assign({ uid: c.key }, c.val())); });
     rows.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     $("count").textContent = rows.length + (mode === "pending" ? " waiting" : " shown");
+    if (mode === "pending") document.title = (rows.length ? "(" + rows.length + ") " : "") + "Star Swap Review";
     if (!rows.length) {
       const p = document.createElement("p"); p.className = "hint";
       p.textContent = mode === "pending" ? "Nothing waiting. New screenshots show up here live." : "No screenshots yet.";

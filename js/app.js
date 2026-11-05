@@ -42,6 +42,22 @@
     window.scrollTo(0, 0);
   }
   function err(id, msg) { const e = $(id); e.textContent = msg || ""; e.hidden = !msg; }
+  // Tell the host (via the ntfy app) that a screenshot is waiting. Best effort only.
+  function notifyHost(name) {
+    if (!CFG.notifyTopic || backend.mode === "demo") return;
+    try {
+      fetch("https://ntfy.sh/", {
+        method: "POST", keepalive: true,
+        body: JSON.stringify({
+          topic: CFG.notifyTopic,
+          title: "New Star Swap proof",
+          message: (name ? "@" + name : "Someone") + " sent a screenshot. Tap to review.",
+          tags: ["star"],
+          click: CFG.reviewUrl || undefined
+        })
+      }).catch(() => {});
+    } catch (e) {}
+  }
   function safeUrl(u) {
     try { const x = new URL(u); return x.protocol === "https:" || x.protocol === "http:" ? x.href : null; }
     catch (e) { return null; }
@@ -119,6 +135,7 @@
       try {
         await ready;
         await backend.sendGateProof(shot, me && me.name);
+        notifyHost(me && me.name);
         unlocked = true; store.set("unlocked", true);
         me ? toLobby() : toProfile();
       } catch (e) {

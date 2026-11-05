@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.261104.04 (Nov 4, 2026)
+- Phone alert for the host (ntfy app) whenever someone sends a gate screenshot; tapping it opens review.html.
+- review.html shows the pending count in the browser tab title.
+
 ## 1.261104.03 (Nov 4, 2026)
 - Connected Firebase project `star-swap-f8c18`: real matching and proof storage (no more demo mode).
 
