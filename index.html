@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Star Swap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Swap TikTok Pro invite links with other people, one for one.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<div class="shell">
+  <header class="top">
+    <div class="brand">
+      <svg class="brand-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.5L12 17.2 6.1 20.5l1.3-6.5L2.5 9.4l6.6-.8z"/></svg>
+      <span>Star Swap</span>
+    </div>
+    <ol class="steps" aria-label="Progress">
+      <li id="st-1">Scan</li>
+      <li id="st-2">Your link</li>
+      <li id="st-3">Swap</li>
+    </ol>
+  </header>
+
+  <main>
+    <!-- 1. QR gate -->
+    <section id="view-gate" class="view" hidden>
+      <h1>Scan to get in</h1>
+      <p class="lead">Before you can swap with anyone, join TikTok Pro with the host's invite. Pick either option below.</p>
+
+      <div class="gate">
+        <figure class="qr-frame">
+          <span class="label">Option A · Scan</span>
+          <div id="owner-qr" class="qr"></div>
+          <figcaption id="owner-qr-note" class="tag" hidden>Example QR · add your link in js/config.js</figcaption>
+          <a class="btn line sm qr-open" id="open-owner" href="#" target="_blank" rel="noopener">On this phone? Open the invite</a>
+        </figure>
+
+        <div class="gate-side">
+          <div class="redeem card">
+            <span class="label">Option B · Redeem code</span>
+            <div class="code-row">
+              <code id="owner-code">—</code>
+              <button class="btn ghost sm" id="copy-code" type="button">Copy</button>
+            </div>
+            <p class="hint">In TikTok Pro, go to Stars → Enter invite code, paste it and tap Confirm. Do it within 24 hours of signing up.</p>
+          </div>
+
+          <label class="check">
+            <input type="checkbox" id="gate-check">
+            <span>I scanned the QR or redeemed the code</span>
+          </label>
+          <button class="btn primary" id="gate-go" type="button" disabled>Unlock <span id="gate-timer"></span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Profile -->
+    <section id="view-profile" class="view" hidden>
+      <h1>Your swap card</h1>
+      <p class="lead">This is the only thing your partner sees. Nobody sees it until you both press Connect.</p>
+      <form id="profile-form" class="card form" novalidate>
+        <label class="field" for="p-name">
+          <span class="label">TikTok username</span>
+          <div class="at"><span>@</span><input id="p-name" name="name" autocomplete="off" maxlength="24" placeholder="yourname" required></div>
+        </label>
+        <label class="field" for="p-link">
+          <span class="label">Your TikTok Pro invite link</span>
+          <input id="p-link" name="link" type="url" inputmode="url" placeholder="https://vm.tiktok.com/…" required>
+          <span class="hint">In TikTok Pro: Stars → Invite friends → Copy link.</span>
+        </label>
+        <p class="error" id="p-error" hidden></p>
+        <button class="btn primary" type="submit">Save card</button>
+      </form>
+    </section>
+
+    <!-- 3. Lobby -->
+    <section id="view-lobby" class="view" hidden>
+      <div class="lobby">
+        <p class="live"><span class="dot"></span><b id="looking-count">0</b> <span id="looking-word">people</span> waiting to swap</p>
+        <button class="connect" id="connect" type="button">
+          <span class="connect-ring"></span>
+          <span class="connect-label">Connect with others</span>
+        </button>
+        <p class="hint center">You'll be paired with one person. You use their link, they use yours.</p>
+        <div class="mini-card">
+          <span>Swapping as <b id="me-name">@you</b></span>
+          <button class="btn ghost sm" id="edit-card" type="button">Edit card</button>
+        </div>
+        <p class="hint center" id="swap-tally"></p>
+      </div>
+    </section>
+
+    <!-- 4. Searching -->
+    <section id="view-search" class="view" hidden>
+      <div class="lobby">
+        <div class="radar" aria-hidden="true"><span></span><span></span><span></span></div>
+        <h2>Finding someone…</h2>
+        <p class="hint center">Keep this page open. Most matches take under a minute when people are online.</p>
+        <button class="btn ghost" id="cancel-search" type="button">Cancel</button>
+      </div>
+    </section>
+
+    <!-- 5. Matched -->
+    <section id="view-match" class="view" hidden>
+      <p class="eyebrow">Matched</p>
+      <h1 id="partner-name">@partner</h1>
+      <p class="tag" id="partner-demo" hidden>Example partner · demo mode, no real backend connected</p>
+
+      <div class="match">
+        <figure class="qr-frame small">
+          <div id="partner-qr" class="qr"></div>
+        </figure>
+        <div class="match-side">
+          <ol class="todo">
+            <li>Open their invite and join with it (or enter their code in Stars).</li>
+            <li>They do the same with yours.</li>
+            <li>Both press <b>Done</b>.</li>
+          </ol>
+          <div class="row">
+            <a class="btn line" id="open-partner" href="#" target="_blank" rel="noopener">Open their invite</a>
+            <button class="btn ghost" id="copy-partner" type="button">Copy link</button>
+          </div>
+          <div class="status">
+            <span class="chip" id="chip-me">You · pending</span>
+            <span class="chip" id="chip-them">Them · pending</span>
+          </div>
+          <button class="btn primary" id="mark-done" type="button">Done, I used their link</button>
+          <div class="complete" id="complete" hidden>
+            <p><b>Swap complete.</b> You both used each other's links.</p>
+            <button class="btn primary" id="again" type="button">Connect with someone else</button>
+          </div>
+          <button class="btn ghost sm" id="leave-match" type="button">Leave this swap</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>Not affiliated with TikTok. Uses honor system: the site can't check who actually joined.</span>
+    <span class="ver" id="ver"></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/vendor/qrcode.min.js"></script>
+<script src="js/version.js"></script>
+<script src="js/config.js"></script>
+<script src="js/backend.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

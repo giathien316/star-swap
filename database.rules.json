@@ -1,0 +1,29 @@
+{
+  "rules": {
+    "presence": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.isNumber()"
+      }
+    },
+    "pairing": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".validate": "!newData.exists() || (newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('link').isString() && newData.child('link').val().length <= 300)"
+    },
+    "inbox": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || !data.exists())",
+        ".validate": "!newData.exists() || newData.isString()"
+      }
+    },
+    "pairs": {
+      "$pid": {
+        ".read": "auth != null && (data.child('a').val() === auth.uid || data.child('b').val() === auth.uid)",
+        ".write": "auth != null && ((!data.exists() && newData.child('b').val() === auth.uid) || data.child('a').val() === auth.uid || data.child('b').val() === auth.uid)"
+      }
+    }
+  }
+}
