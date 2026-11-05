@@ -14,12 +14,13 @@ window.STARSWAP_CONFIG = {
   // 2) Firebase (free) so real people can be matched with each other.
   //    Leave as null and the site runs in DEMO MODE with example partners.
   //    See README.md -> "Turn on real matching".
-  firebase: null
-  /* firebase: {
-    apiKey: "...",
-    authDomain: "your-project.firebaseapp.com",
-    databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-    projectId: "your-project",
-    appId: "..."
-  } */
+  firebase: {
+    apiKey: "AIzaSyC5p3Hyfhsa1IHd9e5-gQzFZRnmGLST1v8",
+    authDomain: "star-swap-f8c18.firebaseapp.com",
+    databaseURL: "https://star-swap-f8c18-default-rtdb.firebaseio.com",
+    projectId: "star-swap-f8c18",
+    storageBucket: "star-swap-f8c18.firebasestorage.app",
+    messagingSenderId: "253333433486",
+    appId: "1:253333433486:web:1d3cb777b28e3df4ea6ddf"
+  }
 };

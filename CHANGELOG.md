@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.261104.03 (Nov 4, 2026)
+- Connected Firebase project `star-swap-f8c18`: real matching and proof storage (no more demo mode).
+
 ## 1.261104.02 (Nov 4, 2026)
 - Gate now needs a proof screenshot instead of a checkbox. Screenshots are shrunk on the phone and saved to Firebase.
 - New host page `review.html`: approve or reject gate screenshots. Rejected devices can't connect or send a new screenshot (enforced by the database rules).
